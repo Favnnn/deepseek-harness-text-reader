@@ -18,6 +18,23 @@ if ([string]::IsNullOrEmpty($PluginDir)) {
   throw 'install.ps1 must run as a saved script file (needs $PSScriptRoot).'
 }
 
+# --- Pre-flight: a broken file must never reach the live copy -------------------
+# A corrupted host.mjs would make the next server start fail loudly (the boot
+# audit refuses to activate a broken entry), so gate the copy on a syntax check
+# when node is available. The installed copy stays untouched on failure.
+$Node = Get-Command node -ErrorAction SilentlyContinue
+if ($Node) {
+  foreach ($CheckFile in @('boot.mjs', 'host.mjs', 'client.js')) {
+    $CheckPath = Join-Path $PluginDir $CheckFile
+    if (Test-Path $CheckPath) {
+      & node --check $CheckPath
+      if ($LASTEXITCODE -ne 0) {
+        throw "$CheckFile failed the syntax pre-check; the installed copy was NOT touched. Fix or re-copy the folder, then run install.bat again."
+      }
+    }
+  }
+}
+
 # --- Resolve the harness home ---------------------------------------------------
 $DshHome = $env:DSH_HOME
 if ([string]::IsNullOrEmpty($DshHome)) { $DshHome = Join-Path $env:USERPROFILE '.dsh' }
@@ -25,12 +42,14 @@ if ([string]::IsNullOrEmpty($DshHome)) { $DshHome = Join-Path $env:USERPROFILE '
 # --- Copy the whole folder into the harness home ---------------------------------
 $InstallDir = Join-Path $DshHome 'plugins/dsh-text-reader'
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-foreach ($File in @('package.json', 'host.mjs', 'client.js', 'install.ps1', 'uninstall.ps1', 'install.bat', 'uninstall.bat', 'README.md', 'cordis.patch.yml')) {
+foreach ($File in @('package.json', 'boot.mjs', 'host.mjs', 'client.js', 'install.ps1', 'uninstall.ps1', 'install.bat', 'uninstall.bat', 'README.md', 'cordis.patch.yml')) {
   $From = (Resolve-Path (Join-Path $PluginDir $File)).Path
   $To = Join-Path $InstallDir $File
   if ($From -ne $To) { Copy-Item -Force $From $To }
 }
-$HostFile = Join-Path $InstallDir 'host.mjs'
+# The row mounts boot.mjs - a guarded launcher that always imports cleanly.
+# A corrupted host.mjs then only disables the reader; the server still starts.
+$HostFile = Join-Path $InstallDir 'boot.mjs'
 $HostUrl = [System.Uri]::new($HostFile).AbsoluteUri
 
 # --- Rewrite the delivery folder's informational patch file ---------------------
@@ -38,7 +57,8 @@ $PatchSource = Join-Path $PluginDir 'cordis.patch.yml'
 $PatchContent = @(
   '# Text reader - informational copy of the row installed by install.ps1.',
   '# The live row lives in %DSH_HOME%\profiles\web\cordis.patch.yml and points at',
-  '# the installed copy under %DSH_HOME%\plugins\dsh-text-reader\host.mjs.',
+  '# the guarded launcher (boot.mjs) of the installed copy under',
+  '# %DSH_HOME%\plugins\dsh-text-reader; boot.mjs loads host.mjs defensively.',
   '- insert:',
   ('  - name: ' + $HostUrl),
   '    config:',
@@ -69,7 +89,11 @@ if (Test-Path $ProfilePatch) {
     }
     $Kept += $Line
   }
-  while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') { $Kept = $Kept[0..($Kept.Count - 2)] }
+  # Trim trailing blanks; Select-Object -First is safe even when one
+  # element is left (a 0..count-2 slice would loop forever on it).
+  while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') {
+    $Kept = @($Kept | Select-Object -First ($Kept.Count - 1))
+  }
   $Merged = ($Kept -join "`r`n") + "`r`n`r`n" + $RowMarker + "`r`n" + ($RowBody -join "`r`n") + "`r`n"
   [System.IO.File]::WriteAllText($ProfilePatch, $Merged, $Utf8)
 } else {

@@ -1,7 +1,8 @@
 # Text reader - informational copy of the row installed by install.ps1.
 # The live row lives in %DSH_HOME%\profiles\web\cordis.patch.yml and points at
-# the installed copy under %DSH_HOME%\plugins\dsh-text-reader\host.mjs.
+# the guarded launcher (boot.mjs) of the installed copy under
+# %DSH_HOME%\plugins\dsh-text-reader; boot.mjs loads host.mjs defensively.
 - insert:
-  - name: file:///C:/Users/Vad/.dsh/plugins/dsh-text-reader/host.mjs
+  - name: file:///C:/Users/Vad/.dsh/plugins/dsh-text-reader/boot.mjs
     config:
       enabled: true

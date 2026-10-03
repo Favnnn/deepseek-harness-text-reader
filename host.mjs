@@ -34,16 +34,19 @@ const RATE_MAX = 4
 /** Where the audio is produced: page speechSynthesis, host WAV, or host process. */
 const OUTPUTS = ['browser', 'wav', 'process']
 
+/** Plugin UI language: auto follows the harness locale, en/ru pin the card. */
+const LANGUAGES = ['auto', 'en', 'ru']
+
 /**
  * Validate and normalize one merged settings candidate. Never throws: the
  * section must not be able to block a harness boot, so an invalid field
  * normalizes to its default instead.
  * @param {unknown} candidate - merged base + user section.
- * @returns {{ enabled: boolean, voice: string, rate: number, output: string, device: string }} normalized section.
+ * @returns {{ enabled: boolean, voice: string, rate: number, output: string, device: string, language: string }} normalized section.
  */
 function resolveTextReaderSection(candidate) {
   if (candidate === undefined || candidate === null || typeof candidate !== 'object' || Array.isArray(candidate)) {
-    return { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '' }
+    return { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '', language: 'auto' }
   }
   const enabled = typeof candidate.enabled === 'boolean' ? candidate.enabled : true
   const voice = typeof candidate.voice === 'string' && candidate.voice.length > 0 ? candidate.voice : 'auto'
@@ -53,7 +56,8 @@ function resolveTextReaderSection(candidate) {
   if (rate > RATE_MAX) rate = RATE_MAX
   const output = typeof candidate.output === 'string' && OUTPUTS.includes(candidate.output) ? candidate.output : 'browser'
   const device = typeof candidate.device === 'string' ? candidate.device : ''
-  return { ...candidate, enabled, voice, rate, output, device }
+  const language = typeof candidate.language === 'string' && LANGUAGES.includes(candidate.language) ? candidate.language : 'auto'
+  return { ...candidate, enabled, voice, rate, output, device, language }
 }
 
 /**
@@ -62,12 +66,13 @@ function resolveTextReaderSection(candidate) {
  */
 function createTextReaderSchema() {
   const refs = {
-    0: { type: 'object', meta: {}, dict: { enabled: 1, voice: 2, rate: 3, output: 4, device: 5 } },
+    0: { type: 'object', meta: {}, dict: { enabled: 1, voice: 2, rate: 3, output: 4, device: 5, language: 6 } },
     1: { type: 'boolean', meta: { default: true } },
     2: { type: 'string', meta: { default: 'auto' } },
     3: { type: 'number', meta: { default: 1 } },
     4: { type: 'string', meta: { default: 'browser' } },
     5: { type: 'string', meta: { default: '' } },
+    6: { type: 'string', meta: { default: 'auto' } },
   }
   const schema = (candidate) => resolveTextReaderSection(candidate)
   schema.type = 'object'
@@ -78,13 +83,14 @@ function createTextReaderSchema() {
     rate: refs[3],
     output: refs[4],
     device: refs[5],
+    language: refs[6],
   }
   schema.toJSON = () => ({ uid: 0, refs })
   return schema
 }
 
 /** Resolved reader configuration for diagnostics and fallback reads. */
-const readerState = { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '' }
+const readerState = { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '', language: 'auto' }
 
 // ─── windows speech runner ───────────────────────────────────────────────────
 
@@ -594,6 +600,18 @@ function handleRequest(req, res) {
 
 // ─── plugin ──────────────────────────────────────────────────────────────────
 
+/** A registration failure must degrade only its own feature and say why;
+ * duplicate registrations from watcher re-runs are success, not errors. */
+function registrationGuard(ctx, label, doRegister) {
+  try {
+    doRegister()
+  } catch (error) {
+    const message = error && error.message ? error.message : String(error)
+    if (message.includes('already registered') || /duplicate/i.test(message)) return
+    ctx.logger?.warn?.('text-reader: ' + label + ' skipped (' + message + '); the reader starts without it')
+  }
+}
+
 /**
  * Plugin body: register the `text-reader` settings section and the
  * `/text-reader` speech routes on the web server.
@@ -608,29 +626,34 @@ export function apply(ctx, config) {
   // the layer). Wait for it reactively — a one-shot ctx.get raced the provider
   // on one boot and silently cost both user plugins their settings cards.
   const registerSection = (settingsCtx) => {
-    settingsCtx.settings.installSection(settingsCtx, 'text-reader', createTextReaderSchema(), {
-      enabled: readerState.enabled,
-      voice: readerState.voice,
-      rate: readerState.rate,
-      output: readerState.output,
-      device: readerState.device,
-    }, {
-      setSource: (current) => {
-        Object.assign(readerState, resolveTextReaderSection(current))
-      },
-      onChange: () => {
-        ctx.logger?.debug?.('text-reader: enabled=%s output=%s voice=%s', readerState.enabled, readerState.output, readerState.voice)
-      },
+    registrationGuard(ctx, 'settings section', () => {
+      settingsCtx.settings.installSection(settingsCtx, 'text-reader', createTextReaderSchema(), {
+        enabled: readerState.enabled,
+        voice: readerState.voice,
+        rate: readerState.rate,
+        output: readerState.output,
+        device: readerState.device,
+        language: readerState.language,
+      }, {
+        setSource: (current) => {
+          Object.assign(readerState, resolveTextReaderSection(current))
+        },
+        onChange: () => {
+          ctx.logger?.debug?.('text-reader: enabled=%s output=%s voice=%s', readerState.enabled, readerState.output, readerState.voice)
+        },
+      })
     })
   }
   if (ctx.get('settings') !== undefined) registerSection(ctx)
   else ctx.inject(['settings'], registerSection)
 
   const registerRoutes = (webCtx) => {
-    webCtx.effect(
-      () => webCtx.webServer.register({ kind: 'prefix', path: '/text-reader', handler: handleRequest }),
-      'text-reader: speech routes',
-    )
+    registrationGuard(ctx, 'speech routes', () => {
+      webCtx.effect(
+        () => webCtx.webServer.register({ kind: 'prefix', path: '/text-reader', handler: handleRequest }),
+        'text-reader: speech routes',
+      )
+    })
   }
   if (ctx.get('webServer') === undefined) ctx.inject(['webServer'], registerRoutes)
   else registerRoutes(ctx)

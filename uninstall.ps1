@@ -31,7 +31,11 @@ if (Test-Path $ProfilePatch) {
     $Kept += $Line
   }
   if ($Kept.Count -ne $Existing.Count) {
-    while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') { $Kept = $Kept[0..($Kept.Count - 2)] }
+    # Trim trailing blanks; Select-Object -First is safe even when one
+    # element is left (a 0..count-2 slice would loop forever on it).
+    while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') {
+      $Kept = @($Kept | Select-Object -First ($Kept.Count - 1))
+    }
     [System.IO.File]::WriteAllText($ProfilePatch, (($Kept -join "`r`n") + "`r`n"), $Utf8)
     Write-Host "Removed the text-reader row from $ProfilePatch" -ForegroundColor Green
   } else {
@@ -68,11 +72,13 @@ if (Test-Path $SettingsPath) {
     $Kept = @()
     $InSection = $false
     foreach ($Line in $Settings) {
-      if ($Line -match '^text-reader:') { $InSection = true; continue }
-      if ($InSection -and $Line -match '^\S') { $InSection = false }
+      if ($Line -match '^text-reader:') { $InSection = $true; continue }
+      if ($InSection -and $Line -match '^\S') { $InSection = $false }
       if (-not $InSection) { $Kept += $Line }
     }
-    while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') { $Kept = $Kept[0..($Kept.Count - 2)] }
+    while ($Kept.Count -gt 0 -and $Kept[$Kept.Count - 1] -eq '') {
+      $Kept = @($Kept | Select-Object -First ($Kept.Count - 1))
+    }
     [System.IO.File]::WriteAllText($SettingsPath, (($Kept -join "`r`n") + "`r`n"), $Utf8)
     Write-Host "Removed the text-reader section from $SettingsPath" -ForegroundColor Green
   }

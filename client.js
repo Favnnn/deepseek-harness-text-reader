@@ -5,10 +5,9 @@ window.__ModuleLoader__.load({
 		var exports = module.exports;
 		Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 		let react = require("react");
-		let primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 
 		//#region stylesheet
-		const css = ".trd-fab{position:fixed;z-index:95;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:var(--dsw-specific-menu);color:var(--dsw-alias-label-secondary);box-shadow:var(--dsw-elevation-prominent);cursor:pointer;pointer-events:auto;user-select:none;touch-action:none}.trd-fab:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-fill-l2)}.trd-fabSpeaking{color:var(--dsw-alias-label-primary);background:color-mix(in srgb,var(--dsw-alias-label-primary) 14%,var(--dsw-specific-menu))}.trd-fab svg{flex:none}.trd-settings{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px;border:1px solid var(--dsw-alias-border-l3);border-radius:12px}.trd-settingsText{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.trd-settingsTitle{margin:0;font-size:13px;font-weight:600;line-height:18px;color:var(--dsw-alias-label-primary)}.trd-settingsDesc{margin:0;font-size:12px;line-height:16px;color:var(--dsw-alias-label-tertiary)}.trd-settingsControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}.trd-fieldRow{display:flex;align-items:center;gap:8px}.trd-fieldLabel{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}.trd-select{max-width:240px;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;line-height:20px;padding:2px 6px;outline:0}.trd-select:disabled{cursor:default;opacity:.5}.trd-segmented{display:inline-flex;align-items:stretch;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);padding:2px;gap:2px}.trd-segment{border:0;border-radius:6px;background:0 0;color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:18px;padding:0 8px;cursor:pointer;white-space:nowrap}.trd-segment:hover{color:var(--dsw-alias-label-secondary)}.trd-segmentActive{background:var(--dsw-specific-menu);color:var(--dsw-alias-label-primary)}.trd-segment:disabled{cursor:default;opacity:.5}";
+		const css = ".trd-fab{position:fixed;z-index:95;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:var(--dsw-specific-menu);color:var(--dsw-alias-label-secondary);box-shadow:var(--dsw-elevation-prominent);cursor:pointer;pointer-events:auto;user-select:none;touch-action:none}.trd-fab:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-fill-l2)}.trd-fabSpeaking{color:var(--dsw-alias-label-primary);background:color-mix(in srgb,var(--dsw-alias-label-primary) 14%,var(--dsw-specific-menu))}.trd-fab svg{flex:none}.trd-settings{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px;border:1px solid var(--dsw-alias-border-l3);border-radius:12px}.trd-settingsText{display:flex;flex-direction:column;gap:2px;min-width:240px;flex:1 1 240px}.trd-settingsTitle{margin:0;font-size:13px;font-weight:600;line-height:18px;color:var(--dsw-alias-label-primary)}.trd-settingsDesc{margin:0;font-size:12px;line-height:16px;color:var(--dsw-alias-label-tertiary)}.trd-settingsControls{display:flex;flex-direction:column;align-items:flex-end;gap:10px;justify-content:flex-end;flex-wrap:nowrap;max-width:100%;margin-left:auto}.trd-fieldRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}.trd-fieldLabel{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}.trd-switch{position:relative;flex:none;width:36px;height:20px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l3);border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 55%,var(--dsw-alias-fill-l2));cursor:pointer;transition:background .15s,border-color .15s}.trd-switch:hover{border-color:var(--dsw-alias-border-l1)}.trd-switch[aria-checked=true]{background:var(--dsw-alias-state-success-primary);border-color:transparent}.trd-switch:disabled{cursor:default;opacity:.5}.trd-switch:focus-visible{outline:2px solid var(--dsw-alias-state-success-primary);outline-offset:1px}.trd-switchThumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:999px;background:#fff;box-shadow:0 1px 2px color-mix(in srgb,var(--dsw-alias-label-primary) 25%,transparent);transition:transform .15s,background .15s}.trd-switch[aria-checked=true] .trd-switchThumb{transform:translateX(16px);background:#fff}.trd-select{max-width:240px;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;line-height:20px;padding:2px 6px;outline:0}.trd-select:disabled{cursor:default;opacity:.5}.trd-segmented{display:inline-flex;align-items:stretch;flex-wrap:wrap;justify-content:center;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);padding:2px;gap:2px;max-width:100%}.trd-segment{border:0;border-radius:6px;background:0 0;color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:18px;padding:0 8px;cursor:pointer;white-space:nowrap}.trd-segment:hover{color:var(--dsw-alias-label-secondary)}.trd-segmentActive{background:var(--dsw-specific-menu);color:var(--dsw-alias-label-primary)}.trd-segment:disabled{cursor:default;opacity:.5}";
 		const tagId = "dsh-text-reader/text-reader.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -35,7 +34,9 @@ window.__ModuleLoader__.load({
 			"settings.outputProcess": "Windows process",
 			"settings.device": "Output device",
 			"settings.deviceDefault": "System default",
-			"settings.test": "Test"
+			"settings.test": "Test",
+			"settings.language": "UI language",
+			"settings.languageAuto": "Auto"
 		};
 		/** Russian dictionary, key-identical to the English source of truth. */
 		const ru = {
@@ -53,11 +54,28 @@ window.__ModuleLoader__.load({
 			"settings.outputProcess": "Процесс Windows",
 			"settings.device": "Устройство вывода",
 			"settings.deviceDefault": "Системное по умолчанию",
-			"settings.test": "Проба"
+			"settings.test": "Проба",
+			"settings.language": "Язык интерфейса",
+			"settings.languageAuto": "Авто"
 		};
 		//#endregion
 		//#region lib/types/client/model.js
-		const { Switch } = primitives;
+		/** Local two-state toggle: the plugin must not depend on harness
+		 * primitives that can vanish between builds — a missing primitive once
+		 * blanked every card in Settings → Plugins (React #130 inside the slot
+		 * boundary). Styled purely with --dsw-* tokens, same 36×20 shape. */
+		function LocalSwitch(props) {
+			return react.createElement("button", {
+				type: "button",
+				role: "switch",
+				"aria-checked": props.checked === true,
+				"aria-label": props.label,
+				title: props.title,
+				disabled: props.disabled === true,
+				className: "trd-switch",
+				onClick: () => props.onChange(!(props.checked === true))
+			}, react.createElement("span", { className: "trd-switchThumb" }));
+		}
 		/** Identity selector for snapshot-store hooks. */
 		function identity(value) {
 			return value;
@@ -78,7 +96,9 @@ window.__ModuleLoader__.load({
 			const outputs = ["browser", "wav", "process"];
 			const output = value && typeof value.output === "string" && outputs.indexOf(value.output) >= 0 ? value.output : "browser";
 			const device = value && typeof value.device === "string" ? value.device : "";
-			return { enabled, voice, rate, output, device };
+			const langs = ["auto", "en", "ru"];
+			const language = value && typeof value.language === "string" && langs.indexOf(value.language) >= 0 ? value.language : "auto";
+			return { enabled, voice, rate, output, device, language };
 		}
 		/** The page speechSynthesis interface, or null when the browser lacks it. */
 		function synth() {
@@ -136,6 +156,13 @@ window.__ModuleLoader__.load({
 		function resolveT(seatT) {
 			if (typeof seatT === "function") return seatT;
 			return (key) => (en[key] !== undefined ? en[key] : key);
+		}
+		/** Language override: "en"/"ru" pin the plugin's own dictionary (the
+		 * harness GUI locale is ignored); "auto" keeps the seat chain. */
+		function makeT(seatT, language) {
+			if (language !== "en" && language !== "ru") return resolveT(seatT);
+			const dict = language === "ru" ? ru : en;
+			return (key) => (dict[key] !== undefined ? dict[key] : en[key] !== undefined ? en[key] : key);
 		}
 		/** Utterance length cap: huge selections used to fail silently in some engines. */
 		const MAX_CHARS = 5000;
@@ -242,7 +269,7 @@ window.__ModuleLoader__.load({
 		 */
 		function ReaderFab(props) {
 			const reader = props.useReader(identity);
-			const t = resolveT(props.t);
+			const t = makeT(props.t, normalizeSettings(reader.value).language);
 			const enabled = isEnabled(reader);
 			const [anchor, setAnchor] = react.useState(null);
 			const [speaking, setSpeaking] = react.useState(false);
@@ -364,8 +391,10 @@ window.__ModuleLoader__.load({
 					} catch {
 					}
 					activeUtterance = null;
+					// The icon STAYS after the speech ends (this is the whole
+					// point of the revisit feature): back to the play glyph,
+					// ready for one more click without re-selecting.
 					setSpeaking(false);
-					setAnchor(null);
 				};
 				const makeUtterance = (chunk, last) => {
 					let u;
@@ -507,23 +536,39 @@ window.__ModuleLoader__.load({
 				hostCtrl.current = speakHost(text, settings, (error) => {
 					if (speakSeq.current !== seq) return;
 					hostCtrl.current = null;
+					// Same rule as the browser path: end of speech (natural or
+					// /stop) retracts the icon.
 					setSpeaking(false);
 					if (error !== null) speakBrowser(text, settings);
-					else setAnchor(null);
 				});
+			}
+			function currentSelection() {
+				try {
+					return String(window.getSelection() || "").trim();
+				} catch {
+					return "";
+				}
 			}
 			function onClick() {
 				// The stop gesture follows our own flag: an engine left speaking
 				// or pending by other page code must not poison every subsequent
-				// click into a silent stop.
+				// click into a silent stop. Stopping keeps the icon in place.
 				if (speaking) {
 					stopSpeaking();
-					setAnchor(null);
 					return;
 				}
 				if (anchor === null) return;
+				// Idle click. The request: nothing selected anymore means
+				// "dismiss me"; a selection (still the old one, or a fresh one)
+				// means "speak this".
+				const sel = currentSelection();
+				if (sel.length < 2) {
+					setAnchor(null);
+					return;
+				}
+				const text = sel.slice(0, MAX_CHARS);
+				if (text !== anchor.text) setAnchor({ x: anchor.x, y: anchor.y, text: text });
 				const settings = normalizeSettings(reader.value);
-				const text = anchor.text;
 				if (settings.output === "browser") speakBrowser(text, settings);
 				else speakWithHost(text, settings);
 			}
@@ -592,7 +637,7 @@ window.__ModuleLoader__.load({
 				};
 			}, [hostMode]);
 			if (reader.status !== "ready") return null;
-			const t = resolveT(props.t);
+			const t = makeT(props.t, settings.language);
 			const disabled = reader.writable !== true;
 			const runTest = () => {
 				if (testCtrl.current !== null) {
@@ -626,7 +671,16 @@ window.__ModuleLoader__.load({
 								"aria-pressed": mode === settings.output,
 								onClick: () => props.actions.setOutput(mode)
 							}, t("settings.output" + (mode === "browser" ? "Browser" : mode === "wav" ? "Wav" : "Process"))))
-						)
+						),
+						// The enable toggle closes the row on its right edge:
+						// the row's master switch, read after the modes it arms.
+						react.createElement(LocalSwitch, {
+							checked: settings.enabled,
+							label: t("settings.switch"),
+							title: t("settings.switch"),
+							disabled: disabled,
+							onChange: (next) => props.actions.setEnabled(next)
+						})
 					),
 					hostMode && settings.output === "wav" ? react.createElement("div", { className: "trd-fieldRow" },
 						react.createElement("span", { className: "trd-fieldLabel" }, t("settings.device")),
@@ -674,22 +728,29 @@ window.__ModuleLoader__.load({
 							}, (rate === 1 ? "1" : rate.toFixed(2).replace(/0$/, "")) + "×"))
 						)
 					),
-					hostMode ? react.createElement("div", { className: "trd-fieldRow" },
-						react.createElement("div", { className: "trd-segmented", role: "group", "aria-label": t("settings.test") },
+					react.createElement("div", { className: "trd-fieldRow" },
+						react.createElement("span", { className: "trd-fieldLabel" }, t("settings.language")),
+						react.createElement("div", { className: "trd-segmented", role: "group", "aria-label": t("settings.language") },
+							["auto", "en", "ru"].map((code) => react.createElement("button", {
+								key: code,
+								type: "button",
+								className: code === settings.language ? "trd-segment trd-segmentActive" : "trd-segment",
+								disabled: disabled,
+								"aria-pressed": code === settings.language,
+								onClick: () => props.actions.setLanguage(code)
+							}, code === "auto" ? t("settings.languageAuto") : code.toUpperCase()))
+						),
+						// The Test button shares this row: it is a small action,
+						// and one fewer line keeps the card compact.
+						hostMode ? react.createElement("div", { className: "trd-segmented", role: "group", "aria-label": t("settings.test") },
 							react.createElement("button", {
 								type: "button",
 								className: "trd-segment",
 								title: t("settings.test"),
 								onClick: runTest
 							}, "▶ " + t("settings.test"))
-						)
-					) : null,
-					react.createElement(Switch, {
-						checked: settings.enabled,
-						label: t("settings.switch"),
-						disabled: disabled,
-						onChange: (next) => props.actions.setEnabled(next)
-					})
+						) : null
+					)
 				)
 			);
 		}
@@ -702,9 +763,10 @@ window.__ModuleLoader__.load({
 		 * registrations sharing one inject face (scope + actions).
 		 * @param {object} ctx - client plugin context.
 		 */
-		function apply(ctx) {
-			ctx.effect(() => ctx.locale.register(NS, { en, ru }), "text-reader: dictionaries");
-			const scope = ctx.settingsScope.bind({ namespace: NS });
+		function applyOnce(ctx) {
+			safeRegister(() => ctx.effect(() => ctx.locale.register(NS, { en, ru }), "text-reader: dictionaries"), "dictionaries");
+			const scope = safeRegister(() => ctx.settingsScope.bind({ namespace: NS }), "settings scope");
+			if (scope === undefined || scope === null) return;
 			const actions = {
 				setEnabled: (next) => {
 					void scope.set("enabled", next);
@@ -720,30 +782,33 @@ window.__ModuleLoader__.load({
 				},
 				setDevice: (next) => {
 					void scope.set("device", next);
+				},
+				setLanguage: (next) => {
+					void scope.set("language", next);
 				}
 			};
 			const face = () => ({
 				hooks: { reader: scope },
 				actions
 			});
-			ctx.slots.inject("shell.overlay", () => ctx.slots.register({
+			safeRegister(() => ctx.slots.inject("shell.overlay", () => safeRegister(() => ctx.slots.register({
 				name: "shell.overlay",
 				id: "text-reader-fab",
 				order: 45,
 				locale: NS,
 				inject: face
-			}, ReaderFab));
+			}, ReaderFab), "fab registration")), "fab slot");
 			// The slot ledger sorts entries by priority ascending (ties keep
 			// registration order); every shipped card stays on the default 0,
 			// so priority 1 pins this card to the bottom, deterministically.
-			ctx.slots.inject("settings.plugin.item", () => ctx.slots.register({
+			safeRegister(() => ctx.slots.inject("settings.plugin.item", () => safeRegister(() => ctx.slots.register({
 				name: "settings.plugin.item",
 				key: NS,
 				order: 1000,
 				priority: 1,
 				locale: NS,
 				inject: face
-			}, ReaderSettingsCard));
+			}, ReaderSettingsCard), "card registration")), "card slot");
 			// Boot canary: counted in the host's /text-reader/stats so the
 			// installed-copy's own telemetry answers "did the page run this
 			// bundle" without opening devtools.
@@ -751,6 +816,35 @@ window.__ModuleLoader__.load({
 				fetch("/text-reader/boot", { keepalive: true }).catch(() => {});
 			} catch {
 				/* no fetch in this context */
+			}
+		}
+		/** One failed registration must degrade only its own feature: the
+		 * harness treats a crashed entry as fatal for the whole page half. */
+		function safeRegister(doRegister, label) {
+			try {
+				return doRegister();
+			} catch (error) {
+				const message = error && error.message ? error.message : String(error);
+				try {
+					console.warn("text-reader: " + label + " skipped (" + message + ")");
+				} catch {
+					/* no console in this context */
+				}
+				return undefined;
+			}
+		}
+		/** Guarded entry: an activation crash switches the reader off and logs
+		 * the exact reason, but never breaks the settings page. */
+		function apply(ctx) {
+			try {
+				applyOnce(ctx);
+			} catch (error) {
+				const message = error && error.message ? error.message : String(error);
+				try {
+					console.warn("text-reader: activation failed (" + message + "); the reader stays off");
+				} catch {
+					/* no console in this context */
+				}
 			}
 		}
 		//#endregion
