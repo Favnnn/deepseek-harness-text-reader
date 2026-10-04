@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 
 		//#region stylesheet
-		const css = ".trd-fab{position:fixed;z-index:95;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:var(--dsw-specific-menu);color:var(--dsw-alias-label-secondary);box-shadow:var(--dsw-elevation-prominent);cursor:pointer;pointer-events:auto;user-select:none;touch-action:none}.trd-fab:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-fill-l2)}.trd-fabSpeaking{color:var(--dsw-alias-label-primary);background:color-mix(in srgb,var(--dsw-alias-label-primary) 14%,var(--dsw-specific-menu))}.trd-fab svg{flex:none}.trd-settings{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px;border:1px solid var(--dsw-alias-border-l3);border-radius:12px}.trd-settingsText{display:flex;flex-direction:column;gap:2px;min-width:240px;flex:1 1 240px}.trd-settingsTitle{margin:0;font-size:13px;font-weight:600;line-height:18px;color:var(--dsw-alias-label-primary)}.trd-settingsDesc{margin:0;font-size:12px;line-height:16px;color:var(--dsw-alias-label-tertiary)}.trd-settingsControls{display:flex;flex-direction:column;align-items:flex-end;gap:10px;justify-content:flex-end;flex-wrap:nowrap;max-width:100%;margin-left:auto}.trd-fieldRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}.trd-fieldLabel{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}.trd-switch{position:relative;flex:none;width:36px;height:20px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l3);border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 55%,var(--dsw-alias-fill-l2));cursor:pointer;transition:background .15s,border-color .15s}.trd-switch:hover{border-color:var(--dsw-alias-border-l1)}.trd-switch[aria-checked=true]{background:var(--dsw-alias-state-success-primary);border-color:transparent}.trd-switch:disabled{cursor:default;opacity:.5}.trd-switch:focus-visible{outline:2px solid var(--dsw-alias-state-success-primary);outline-offset:1px}.trd-switchThumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:999px;background:#fff;box-shadow:0 1px 2px color-mix(in srgb,var(--dsw-alias-label-primary) 25%,transparent);transition:transform .15s,background .15s}.trd-switch[aria-checked=true] .trd-switchThumb{transform:translateX(16px);background:#fff}.trd-select{max-width:240px;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;line-height:20px;padding:2px 6px;outline:0}.trd-select:disabled{cursor:default;opacity:.5}.trd-segmented{display:inline-flex;align-items:stretch;flex-wrap:wrap;justify-content:center;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);padding:2px;gap:2px;max-width:100%}.trd-segment{border:0;border-radius:6px;background:0 0;color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:18px;padding:0 8px;cursor:pointer;white-space:nowrap}.trd-segment:hover{color:var(--dsw-alias-label-secondary)}.trd-segmentActive{background:var(--dsw-specific-menu);color:var(--dsw-alias-label-primary)}.trd-segment:disabled{cursor:default;opacity:.5}";
+		const css = ".trd-fab{position:fixed;z-index:95;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:linear-gradient(var(--dsw-specific-menu),var(--dsw-specific-menu)) var(--dsw-alias-bg-layer-1,#f8f9fa);color:var(--dsw-alias-label-secondary);box-shadow:var(--dsw-elevation-prominent);cursor:pointer;pointer-events:auto;user-select:none;touch-action:none}.trd-fab:hover{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-fill-l2)}.trd-fabSpeaking{color:var(--dsw-alias-label-primary);background:linear-gradient(color-mix(in srgb,var(--dsw-alias-label-primary) 14%,var(--dsw-specific-menu)),color-mix(in srgb,var(--dsw-alias-label-primary) 14%,var(--dsw-specific-menu))) var(--dsw-alias-bg-layer-1,#f8f9fa)}.trd-fab svg{flex:none}.trd-settings{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px;border:1px solid var(--dsw-alias-border-l3);border-radius:12px;background:linear-gradient(var(--dsw-specific-menu),var(--dsw-specific-menu)) var(--dsw-alias-bg-layer-1,#f8f9fa)}.trd-settingsText{display:flex;flex-direction:column;gap:2px;min-width:240px;flex:1 1 240px}.trd-settingsTitle{margin:0;font-size:13px;font-weight:600;line-height:18px;color:var(--dsw-alias-label-primary)}.trd-settingsDesc{margin:0;font-size:12px;line-height:16px;color:var(--dsw-alias-label-tertiary)}.trd-settingsControls{display:flex;flex-direction:column;align-items:flex-end;gap:10px;justify-content:flex-end;flex-wrap:nowrap;max-width:100%;margin-left:auto}.trd-fieldRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}.trd-fieldLabel{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}.trd-switch{position:relative;flex:none;width:36px;height:20px;box-sizing:border-box;padding:0;border:1px solid var(--dsw-alias-border-l3);border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 55%,var(--dsw-alias-fill-l2));cursor:pointer;transition:background .15s,border-color .15s}.trd-switch:hover{border-color:var(--dsw-alias-border-l1)}.trd-switch[aria-checked=true]{background:var(--dsw-alias-state-success-primary);border-color:transparent}.trd-switch:disabled{cursor:default;opacity:.5}.trd-switch:focus-visible{outline:2px solid var(--dsw-alias-state-success-primary);outline-offset:1px}.trd-switchThumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:999px;background:#fff;box-shadow:0 1px 2px color-mix(in srgb,var(--dsw-alias-label-primary) 25%,transparent);transition:transform .15s,background .15s}.trd-switch[aria-checked=true] .trd-switchThumb{transform:translateX(16px);background:#fff}.trd-select{max-width:240px;box-sizing:border-box;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;line-height:20px;padding:2px 6px;outline:0}.trd-select:disabled{cursor:default;opacity:.5}.trd-segmented{display:inline-flex;align-items:stretch;flex-wrap:wrap;justify-content:center;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-fill-l2);padding:2px;gap:2px;max-width:100%}.trd-segment{border:0;border-radius:6px;background:0 0;color:var(--dsw-alias-label-tertiary);font-size:11px;line-height:18px;padding:0 8px;cursor:pointer;white-space:nowrap}.trd-segment:hover{color:var(--dsw-alias-label-secondary)}.trd-segmentActive{background:var(--dsw-specific-menu);color:var(--dsw-alias-label-primary)}.trd-segment:disabled{cursor:default;opacity:.5}";
 		const tagId = "dsh-text-reader/text-reader.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -25,6 +25,8 @@ window.__ModuleLoader__.load({
 			"settings.title": "Text reader",
 			"settings.description": "A floating icon appears next to the cursor after you select text; clicking it speaks the selection aloud.",
 			"settings.switch": "Show the floating read-aloud icon",
+			"settings.loading": "Loading settings…",
+			"settings.unavailable": "Settings are unavailable — the reader works with its saved values.",
 			"settings.voice": "Voice",
 			"settings.voiceAuto": "Auto (by text language)",
 			"settings.rate": "Speed",
@@ -45,6 +47,8 @@ window.__ModuleLoader__.load({
 			"settings.title": "Озвучивание текста",
 			"settings.description": "После выделения текста рядом с курсором появляется значок; по нажатию выделенное произносится вслух.",
 			"settings.switch": "Показывать плавающий значок озвучки",
+			"settings.loading": "Загрузка настроек…",
+			"settings.unavailable": "Настройки недоступны — ридер работает с сохранёнными значениями.",
 			"settings.voice": "Голос",
 			"settings.voiceAuto": "Авто (по языку текста)",
 			"settings.rate": "Скорость",
@@ -220,7 +224,13 @@ window.__ModuleLoader__.load({
 			return fetch("/text-reader/devices").then((response) => {
 				if (!response.ok) throw new Error("devices " + response.status);
 				return response.json();
-			}).then((list) => (Array.isArray(list) ? list : []), () => []);
+			}).then((list) => {
+				if (Array.isArray(list)) return list;
+				// {error: …} from the helper: empty picker plus a console trace —
+				// never a silent dead end.
+				console.warn("text-reader: device list unavailable", list);
+				return [];
+			}, () => []);
 		}
 		/** Windows voice names served by the host (cached once fetched). */
 		let systemVoicesCache = null;
@@ -591,7 +601,11 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region lib/types/client/settings-card.js
 		const RATES = [0.75, 1, 1.25, 1.5, 2, 3, 4];
-		/** Settings → Plugins card: enable switch, audio path, voice, speed. */
+		/** Plugins-page bundle settings (`plugins.bundle.config`, keyed by the
+		 * package name): audio path, voice, speed, UI language, the icon
+		 * switch. The dispatched `view` is 'page' (the editor); `summary`
+		 * renders the one-liner. Edits apply instantly through the shared
+		 * config-form mirror — the FAB reads the same values. */
 		function ReaderSettingsCard(props) {
 			const reader = props.useReader(identity);
 			const [voices, setVoices] = react.useState(listVoices);
@@ -636,7 +650,13 @@ window.__ModuleLoader__.load({
 					}
 				};
 			}, [hostMode]);
-			if (reader.status !== "ready") return null;
+			if (props.view === "summary") {
+				return react.createElement(react.Fragment, null, props.t("settings.description"));
+			}
+			if (reader.status !== "ready") {
+				return react.createElement("p", { className: "trd-settingsDesc" },
+					reader.status === "loading" ? props.t("settings.loading") : props.t("settings.unavailable"));
+			}
 			const t = makeT(props.t, settings.language);
 			const disabled = reader.writable !== true;
 			const runTest = () => {
@@ -757,15 +777,18 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region lib/types/client/index.js
 		const NS = "text-reader";
-		const inject = ["slots", "locale", "settingsScope"];
+		const inject = ["slots", "locale", "configForms"];
 		/**
-		 * Client plugin body: dictionaries, the settings scope, and two slot
-		 * registrations sharing one inject face (scope + actions).
+		 * Client plugin body: dictionaries, the shared config form, and two
+		 * slot registrations sharing one inject face (form + actions).
 		 * @param {object} ctx - client plugin context.
 		 */
 		function applyOnce(ctx) {
 			safeRegister(() => ctx.effect(() => ctx.locale.register(NS, { en, ru }), "text-reader: dictionaries"), "dictionaries");
-			const scope = safeRegister(() => ctx.settingsScope.bind({ namespace: NS }), "settings scope");
+			// rc.2 settings domain: one shared ConfigForm per row id, fed by the
+			// settings mirror over the host's volatile Config schema. Same
+			// reactive face as the old settingsScope ({status, value, writable}).
+			const scope = safeRegister(() => ctx.configForms.get(NS), "config form");
 			if (scope === undefined || scope === null) return;
 			const actions = {
 				setEnabled: (next) => {
@@ -798,14 +821,11 @@ window.__ModuleLoader__.load({
 				locale: NS,
 				inject: face
 			}, ReaderFab), "fab registration")), "fab slot");
-			// The slot ledger sorts entries by priority ascending (ties keep
-			// registration order); every shipped card stays on the default 0,
-			// so priority 1 pins this card to the bottom, deterministically.
-			safeRegister(() => ctx.slots.inject("settings.plugin.item", () => safeRegister(() => ctx.slots.register({
-				name: "settings.plugin.item",
-				key: NS,
-				order: 1000,
-				priority: 1,
+			// The Plugins-page settings live on the bundle's page, keyed by the
+			// package name; the row's enable/disable switch is the page's own.
+			safeRegister(() => ctx.slots.inject("plugins.bundle.config", () => safeRegister(() => ctx.slots.register({
+				name: "plugins.bundle.config",
+				key: "dsh-text-reader",
 				locale: NS,
 				inject: face
 			}, ReaderSettingsCard), "card registration")), "card slot");
@@ -854,3 +874,4 @@ window.__ModuleLoader__.load({
 		return module.exports;
 	}
 });
+// republished 2.0.0 (rc.2 port: configForms, plugins.bundle.config, bundle delivery, opaque surface layers)

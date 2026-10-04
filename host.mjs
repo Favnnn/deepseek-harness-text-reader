@@ -1,20 +1,21 @@
 /**
- * dsh-text-reader, Host half.
+ * dsh-text-reader, Host half (dsh v0.2.0-rc.2).
  *
- * A function plugin importing only Node builtins (bare package imports cannot
- * resolve here: the installed copy lives outside any pnpm tree, while `node:`
- * specifiers always resolve).
+ * Official-style config: the exported `Config` schema (schemastery, volatile
+ * fields) IS the settings surface — the Plugins page generates its form from
+ * it and writes through the profile's config editor; the settings service
+ * publishes the namespace under this row's id (`text-reader`). No
+ * installSection, no hand-rolled schema: that API is gone in rc.2.
  *
- * Two responsibilities:
- * 1) The `text-reader` settings section — a hand-rolled, schemastery-compatible
- *    node whose `toJSON()` yields the `{ uid, refs }` envelope the settings
- *    provider serializes to the wire.
- * 2) `/text-reader/*` HTTP routes for system speech (Windows voices through a
- *    helper PowerShell process): browsers cannot pick an output device for
- *    speechSynthesis, so the GUI asks this route for audio instead — either a
- *    WAV the page plays through a chosen device via setSinkId, or a
- *    fire-and-speak from the helper process, which OS per-application audio
- *    routers can map independently of the browser.
+ * The `/text-reader/*` routes are unchanged: browsers cannot pick an output
+ * device for speechSynthesis, so the GUI asks these routes for audio instead —
+ * either a WAV the page plays through a chosen device via setSinkId, or a
+ * fire-and-speak from the helper process, which OS per-application audio
+ * routers can map independently of the browser.
+ *
+ * Fail-safe: every startup step is contained. If schemastery cannot load the
+ * reader loses only the Plugins-page form; if the web server is missing the
+ * reader loses only the speech routes. The harness boots either way.
  */
 
 import { spawn } from 'node:child_process'
@@ -22,14 +23,64 @@ import { createHash } from 'node:crypto'
 import { createReadStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { createRequire } from 'node:module'
 
 export const name = 'text-reader'
 
-// ─── settings ────────────────────────────────────────────────────────────────
+/**
+ * The web server is a hard dependency: declaring it makes this fiber wait
+ * until the service exists, so the `ctx.webServer` property read in `apply`
+ * is legal (property access follows the inject declaration).
+ */
+export const inject = ['webServer']
 
-/** Speech rate bounds; anything outside clamps back into this range. */
-const RATE_MIN = 0.5
-const RATE_MAX = 4
+/**
+ * Schemastery powers the Config schema. A plugin package outside the harness
+ * tree may not resolve the bare specifier, so both paths are contained and
+ * fully synchronous (createRequire — no top-level await): the bare name
+ * first (installed hosts), then the vendored CJS copy the installer
+ * provisions into `./deps/` (source checkouts). Without either the reader
+ * still runs with internal defaults — it only loses the Plugins-page form.
+ */
+const requireFromHere = createRequire(import.meta.url)
+let z = undefined
+try {
+  z = requireFromHere('@deepseek-ai/schemastery')
+} catch {
+  /* fall through to the vendored copy */
+}
+if (z === undefined) {
+  try {
+    z = requireFromHere('./deps/schemastery.cjs')
+  } catch (error) {
+    console.error('text-reader: schemastery unavailable; the reader runs without the Plugins-page form.', error)
+  }
+}
+
+/**
+ * Reader configuration. Every field is volatile: the Plugins page edits them
+ * live — the fiber is NOT reloaded on a write, so `apply` holds volatile
+ * references whose `.get()` always returns the current value.
+ *
+ * enabled  — the floating read-aloud icon on/off.
+ * voice    — Windows voice name; '' picks by the text language.
+ * rate     — speech speed multiplier (0.5–4, 1 = normal).
+ * output   — browser (page speechSynthesis), wav (host WAV via MCI device),
+ *            process (helper PowerShell speaks on the system default).
+ * device   — winmm index for the `wav` mode; '' = system default.
+ * language — plugin UI language; auto follows the harness locale.
+ */
+export let Config = undefined
+if (z !== undefined) {
+  Config = z.object({
+    enabled: z.boolean().default(true).volatile(),
+    voice: z.string().default('').volatile(),
+    rate: z.number().default(1).volatile(),
+    output: z.union(['browser', 'wav', 'process']).default('browser').volatile(),
+    device: z.string().default('').volatile(),
+    language: z.union(['auto', 'en', 'ru']).default('auto').volatile(),
+  })
+}
 
 /** Where the audio is produced: page speechSynthesis, host WAV, or host process. */
 const OUTPUTS = ['browser', 'wav', 'process']
@@ -37,60 +88,57 @@ const OUTPUTS = ['browser', 'wav', 'process']
 /** Plugin UI language: auto follows the harness locale, en/ru pin the card. */
 const LANGUAGES = ['auto', 'en', 'ru']
 
+/** Live config reference, set on every `apply` (volatile refs or plain values). */
+let live = null
+
 /**
- * Validate and normalize one merged settings candidate. Never throws: the
- * section must not be able to block a harness boot, so an invalid field
- * normalizes to its default instead.
- * @param {unknown} candidate - merged base + user section.
- * @returns {{ enabled: boolean, voice: string, rate: number, output: string, device: string, language: string }} normalized section.
+ * Read one config value whether it arrived as a volatile reference (rc.2
+ * volatile fields) or a plain value (older loaders, absent schema). Never
+ * throws: a hiccup reads as the fallback.
+ * @param {string} key - config field.
+ * @param {boolean|string|number} fallback - default when the value is absent.
+ * @returns {boolean|string|number} the current value.
  */
-function resolveTextReaderSection(candidate) {
-  if (candidate === undefined || candidate === null || typeof candidate !== 'object' || Array.isArray(candidate)) {
-    return { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '', language: 'auto' }
+function readValue(key, fallback) {
+  try {
+    const value = live === null || live === undefined ? undefined : live[key]
+    if (value !== null && typeof value === 'object' && typeof value.get === 'function') {
+      const snapshot = value.get()
+      return snapshot === undefined || snapshot === null ? fallback : snapshot
+    }
+    return value === undefined || value === null ? fallback : value
+  } catch {
+    return fallback
   }
-  const enabled = typeof candidate.enabled === 'boolean' ? candidate.enabled : true
-  const voice = typeof candidate.voice === 'string' && candidate.voice.length > 0 ? candidate.voice : 'auto'
-  const rawRate = typeof candidate.rate === 'string' ? Number(candidate.rate) : candidate.rate
-  let rate = typeof rawRate === 'number' && Number.isFinite(rawRate) ? rawRate : 1
-  if (rate < RATE_MIN) rate = RATE_MIN
-  if (rate > RATE_MAX) rate = RATE_MAX
-  const output = typeof candidate.output === 'string' && OUTPUTS.includes(candidate.output) ? candidate.output : 'browser'
-  const device = typeof candidate.device === 'string' ? candidate.device : ''
-  const language = typeof candidate.language === 'string' && LANGUAGES.includes(candidate.language) ? candidate.language : 'auto'
-  return { ...candidate, enabled, voice, rate, output, device, language }
 }
 
 /**
- * Build the schemastery-compatible node for the section.
- * @returns {object} callable schema with a wire `toJSON()` envelope.
+ * Resolved reader state for diagnostics: every field normalized exactly like
+ * the client's normalizeSettings, so a corrupted config degrades to defaults.
+ * @returns {{ enabled: boolean, voice: string, rate: number, output: string, device: string, language: string }}
  */
-function createTextReaderSchema() {
-  const refs = {
-    0: { type: 'object', meta: {}, dict: { enabled: 1, voice: 2, rate: 3, output: 4, device: 5, language: 6 } },
-    1: { type: 'boolean', meta: { default: true } },
-    2: { type: 'string', meta: { default: 'auto' } },
-    3: { type: 'number', meta: { default: 1 } },
-    4: { type: 'string', meta: { default: 'browser' } },
-    5: { type: 'string', meta: { default: '' } },
-    6: { type: 'string', meta: { default: 'auto' } },
-  }
-  const schema = (candidate) => resolveTextReaderSection(candidate)
-  schema.type = 'object'
-  schema.meta = refs[0].meta
-  schema.dict = {
-    enabled: refs[1],
-    voice: refs[2],
-    rate: refs[3],
-    output: refs[4],
-    device: refs[5],
-    language: refs[6],
-  }
-  schema.toJSON = () => ({ uid: 0, refs })
-  return schema
+function readerSnapshot() {
+  const enabled = readValue('enabled', true) !== false
+  const rawVoice = readValue('voice', '')
+  const voice = typeof rawVoice === 'string' ? rawVoice : ''
+  const rawRate = typeof readValue('rate', 1) === 'string' ? Number(readValue('rate', 1)) : readValue('rate', 1)
+  const rate = typeof rawRate === 'number' && Number.isFinite(rawRate) ? rawRate : 1
+  const rawOutput = readValue('output', 'browser')
+  const output = typeof rawOutput === 'string' && OUTPUTS.includes(rawOutput) ? rawOutput : 'browser'
+  const rawDevice = readValue('device', '')
+  const device = typeof rawDevice === 'string' ? rawDevice : ''
+  const rawLanguage = readValue('language', 'auto')
+  const language = typeof rawLanguage === 'string' && LANGUAGES.includes(rawLanguage) ? rawLanguage : 'auto'
+  return { enabled, voice, rate, output, device, language }
 }
 
-/** Resolved reader configuration for diagnostics and fallback reads. */
-const readerState = { enabled: true, voice: 'auto', rate: 1, output: 'browser', device: '', language: 'auto' }
+/**
+ * Current resolved reader state (compatibility export).
+ * @returns {{ enabled: boolean, voice: string, rate: number, output: string, device: string, language: string }}
+ */
+export function readTextReaderState() {
+  return readerSnapshot()
+}
 
 // ─── windows speech runner ───────────────────────────────────────────────────
 
@@ -176,7 +224,10 @@ const WINMM_CS = [
   'public static class TrdOut {',
   '[DllImport("winmm.dll")] public static extern uint waveOutGetNumDevs();',
   '[DllImport("winmm.dll", CharSet=CharSet.Unicode)] public static extern uint waveOutGetDevCaps(uint id, out WAVOUTDEVCAPS caps, uint size);',
-  '[StructLayout(LayoutKind.Sequential)] public struct WAVOUTDEVCAPS { public uint wMid; public uint wPid; public uint vDriverVersion; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)] public string szPname; public uint dwFormats; public uint wChannels; public uint wReserved1; public uint dwSupport; }',
+  // Exact WAVEOUTCAPSW layout: WORD/WORD/DWORD header + 32 WCHARs + tail —
+  // 84 bytes. Declaring the WORDs as uint (60 bytes) makes waveOutGetDevCapsW
+  // reject the call for every device and the picker render empty.
+  '[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] public struct WAVOUTDEVCAPS { public ushort wMid; public ushort wPid; public uint vDriverVersion; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=32)] public string szPname; public uint dwFormats; public ushort wChannels; public ushort wReserved1; public uint dwSupport; }',
   '[DllImport("winmm.dll", CharSet=CharSet.Unicode)] public static extern uint mciSendString(string cmd, StringBuilder ret, uint clen, IntPtr hwnd);',
   'public static string List() { StringBuilder sb = new StringBuilder(); uint n = waveOutGetNumDevs(); for (uint i = 0; i < n; i++) { WAVOUTDEVCAPS c; if (waveOutGetDevCaps(i, out c, (uint)Marshal.SizeOf(typeof(WAVOUTDEVCAPS))) == 0) { sb.Append(i).Append("|").Append(c.szPname).Append("\\n"); } } return sb.ToString(); }',
   'public static string Play(string file, string dev) { string alias = "trd" + Guid.NewGuid().ToString("N").Substring(0, 8); string open = (dev == null || dev.Length == 0) ? ("open \\"" + file + "\\" type waveaudio alias " + alias) : ("open \\"" + file + "\\" type waveaudio device " + dev + " alias " + alias); StringBuilder err = new StringBuilder(256); uint r = mciSendString(open, err, 256, IntPtr.Zero); if (r != 0) { return "open failed: " + err.ToString(); } r = mciSendString("play " + alias + " wait", null, 0, IntPtr.Zero); mciSendString("close " + alias, null, 0, IntPtr.Zero); return r == 0 ? "ok" : ("play failed: code " + r); }',
@@ -600,66 +651,25 @@ function handleRequest(req, res) {
 
 // ─── plugin ──────────────────────────────────────────────────────────────────
 
-/** A registration failure must degrade only its own feature and say why;
- * duplicate registrations from watcher re-runs are success, not errors. */
-function registrationGuard(ctx, label, doRegister) {
-  try {
-    doRegister()
-  } catch (error) {
-    const message = error && error.message ? error.message : String(error)
-    if (message.includes('already registered') || /duplicate/i.test(message)) return
-    ctx.logger?.warn?.('text-reader: ' + label + ' skipped (' + message + '); the reader starts without it')
-  }
-}
-
 /**
- * Plugin body: register the `text-reader` settings section and the
- * `/text-reader` speech routes on the web server.
+ * Plugin body: mount the `/text-reader` speech routes on the web server.
+ * The config arrives as the row's values (volatile fields as live
+ * references); the web server is guaranteed by `inject`.
  * @param {import('@deepseek-ai/cordis').Context} ctx - host plugin context.
- * @param {object | undefined} config - patch row `config`.
+ * @param {Record<string, unknown> | undefined} config - row config; volatile
+ *   fields arrive as live references, plain fields as values.
  */
 export function apply(ctx, config) {
-  const resolved = resolveTextReaderSection(config ?? {})
-  Object.assign(readerState, resolved)
-
-  // The settings service may mount after this row (file:// inserts run early in
-  // the layer). Wait for it reactively — a one-shot ctx.get raced the provider
-  // on one boot and silently cost both user plugins their settings cards.
-  const registerSection = (settingsCtx) => {
-    registrationGuard(ctx, 'settings section', () => {
-      settingsCtx.settings.installSection(settingsCtx, 'text-reader', createTextReaderSchema(), {
-        enabled: readerState.enabled,
-        voice: readerState.voice,
-        rate: readerState.rate,
-        output: readerState.output,
-        device: readerState.device,
-        language: readerState.language,
-      }, {
-        setSource: (current) => {
-          Object.assign(readerState, resolveTextReaderSection(current))
-        },
-        onChange: () => {
-          ctx.logger?.debug?.('text-reader: enabled=%s output=%s voice=%s', readerState.enabled, readerState.output, readerState.voice)
-        },
-      })
-    })
+  live = config === null || config === undefined || typeof config !== 'object' ? {} : config
+  try {
+    ctx.effect(() => ctx.webServer.register({
+      kind: 'prefix',
+      path: '/text-reader',
+      handler: handleRequest,
+    }), 'text-reader: speech routes')
+  } catch (error) {
+    // No routes: system-speech modes go silent and the card falls back to
+    // browser speech; the server boots normally either way.
+    console.error('text-reader: speech routes failed; the reader starts without them.', error)
   }
-  if (ctx.get('settings') !== undefined) registerSection(ctx)
-  else ctx.inject(['settings'], registerSection)
-
-  const registerRoutes = (webCtx) => {
-    registrationGuard(ctx, 'speech routes', () => {
-      webCtx.effect(
-        () => webCtx.webServer.register({ kind: 'prefix', path: '/text-reader', handler: handleRequest }),
-        'text-reader: speech routes',
-      )
-    })
-  }
-  if (ctx.get('webServer') === undefined) ctx.inject(['webServer'], registerRoutes)
-  else registerRoutes(ctx)
-}
-
-/** Current resolved reader state (host-side fallback when settings are absent). */
-export function readTextReaderState() {
-  return { ...readerState }
 }

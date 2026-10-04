@@ -1,6 +1,6 @@
 {
 	"name": "dsh-text-reader",
-	"version": "1.4.8",
+	"version": "2.0.0",
 	"private": true,
 	"type": "module",
 	"dsh": {
@@ -9,7 +9,7 @@
 		},
 		"client": {
 			"platform": "web",
-			"inject": ["@deepseek-ai/dsh-client-ui-settings-plugins"]
+			"inject": ["@deepseek-ai/dsh-client-locale", "@deepseek-ai/dsh-client-ui-settings"]
 		}
 	},
 	"exports": {

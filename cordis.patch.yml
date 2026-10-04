@@ -1,8 +1,25 @@
-# Text reader - informational copy of the row installed by install.ps1.
-# The live row lives in %DSH_HOME%\profiles\web\cordis.patch.yml and points at
-# the guarded launcher (boot.mjs) of the installed copy under
-# %DSH_HOME%\plugins\dsh-text-reader; boot.mjs loads host.mjs defensively.
+# Text reader - the bundle patch the harness loads for this plugin.
+#
+# The plugin is installed as a bundle (install.ps1 runs
+# `pnpm dsh plugin --profile web add <tarball>`): the harness adds the package
+# to the web profile and loads THIS file as its overlay patch. The row
+# references the bundle's own package (`dsh-text-reader`), resolved from the
+# profile's node_modules.
+#
+# `id: text-reader` is load-bearing: the settings service publishes the row's
+# volatile Config schema under this id, the client reads the form through
+# ctx.configForms.get('text-reader'), and the Plugins page renders it on the
+# bundle's page (the row's enable switch is the page's own).
+#
+# The config values below carry the user's previous settings.yaml section over
+# the rc.1 -> rc.2 settings migration (voice/rate/output/device as they were).
 - insert:
-  - name: file:///C:/Users/Vad/.dsh/plugins/dsh-text-reader/boot.mjs
+  - id: text-reader
+    name: dsh-text-reader
     config:
       enabled: true
+      voice: Microsoft Irina - Russian (Russia)
+      rate: 4
+      output: wav
+      device: ""
+      language: ru
